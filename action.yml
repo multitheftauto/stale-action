@@ -1,0 +1,39 @@
+name: 'Close Stale Draft PRs'
+description: 'Close draft pull requests with no recent activity'
+author: 'multitheftauto'
+inputs:
+  close-pr-message:
+    description: 'The message to post on the stale draft pull request that is being closed.'
+    required: false
+  days-before-pr-close:
+    description: 'The number of days to wait to close a pull request after it being marked stale with no activity afterwards.'
+    required: false
+    default: 30
+  days-before-pr-stale:
+    description: 'The number of days old a draft pull request can be before marking it stale.'
+    required: false
+    default: 90
+  ignored-label:
+    description: 'Draft pull requests with this label will not be processed.'
+    required: false
+  repo-token:
+    description: 'Token for the repository. Can be passed in using `{{ secrets.GITHUB_TOKEN }}`.'
+    required: false
+    default: ${{ github.token }}
+  stale-pr-label:
+    description: 'The label to apply when a draft pull request is stale.'
+    required: false
+    default: 'stale'
+  stale-pr-label-color:
+    description: 'A 6 character hex code, without the leading #, identifying the color of the stale label if it needs to be created.'
+    required: false
+    default: '555555'
+  stale-pr-label-description:
+    description: 'A description for the stale label if the label needs to be created.'
+    required: false
+  stale-pr-message:
+    description: 'The message to post on the stale draft pull request that is being labeled.'
+    required: false
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

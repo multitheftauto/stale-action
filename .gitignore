@@ -1,0 +1,5 @@
+.DS_Store
+.husky/_
+.map
+lib
+node_modules
