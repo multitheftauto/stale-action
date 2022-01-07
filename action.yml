@@ -34,6 +34,11 @@ inputs:
   stale-pr-message:
     description: 'The message to post on the stale draft pull request that is being labeled.'
     required: false
+outputs:
+  staled-prs:
+    description: 'List of all new staled draft pull requests.'
+  closed-prs:
+    description: 'List of all new closed draft pull requests.'
 runs:
   using: 'node16'
   main: 'dist/index.js'

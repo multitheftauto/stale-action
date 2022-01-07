@@ -81,9 +81,9 @@ import {
     );
 
     let numberOfStaleLabeableFound = 0;
-    let numberOfStaleLabeled = 0;
+    const newStaled: number[] = [];
     let numberOfStaleClosableFound = 0;
-    let numberOfStaleClosed = 0;
+    const newClosed: number[] = [];
 
     core.startGroup('Labeling process');
 
@@ -106,7 +106,7 @@ import {
 
               // Add stale label
               if (await addLabels(id, [stalePrLabelId])) {
-                numberOfStaleLabeled += 1;
+                newStaled.push(number);
 
                 // Post stale comment if provided
                 if (stalePrMessage) {
@@ -127,7 +127,7 @@ import {
 
             // Close pull request
             if (await closePullRequest(id)) {
-              numberOfStaleClosed += 1;
+              newClosed.push(number);
 
               // Post stale closed comment if provided
               if (closePrMessage) {
@@ -146,12 +146,14 @@ import {
     core.endGroup();
 
     core.notice(
-      `Labeled ${numberOfStaleLabeled} out of ${numberOfStaleLabeableFound} found new draft pull requests as stale.`
+      `Staled ${newStaled.length} out of ${numberOfStaleLabeableFound} found new draft pull requests.`
     );
+    core.setOutput('staled-prs', newStaled);
 
     core.notice(
-      `Closed ${numberOfStaleClosed} out of ${numberOfStaleClosableFound} found old draft pull requests as stale.`
+      `Closed ${newClosed.length} out of ${numberOfStaleClosableFound} found old draft pull requests.`
     );
+    core.setOutput('closed-prs', newClosed);
   } catch (e) {
     core.setFailed(`${e}`);
   }
