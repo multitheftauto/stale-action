@@ -52,6 +52,22 @@ export type PageInfo = {
 };
 
 /**
+ * GitHub GraphQL event type.
+ * Labeled event.
+ * @see https://docs.github.com/en/graphql/reference/objects#labeledevent
+ */
+export type LabeledEvent = {
+  createdAt: DateTime;
+  label: Label;
+};
+
+/**
+ * GitHub GraphQL union type.
+ * @see https://docs.github.com/en/graphql/reference/unions#pullrequesttimelineitems
+ */
+export type PullRequestTimelineItems = LabeledEvent & {};
+
+/**
  * GitHub GraphQL query result item type.
  * A pull request.
  * @see https://docs.github.com/en/graphql/reference/objects#pullrequest
@@ -59,6 +75,9 @@ export type PageInfo = {
 export type PullRequestObject = PullRequest & {
   labels: {
     nodes?: LabelObject[];
+  };
+  timelineItems: {
+    nodes?: PullRequestTimelineItems[];
   };
 };
 

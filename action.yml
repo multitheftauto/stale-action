@@ -39,6 +39,8 @@ outputs:
     description: 'List of all new staled draft pull requests.'
   closed-prs:
     description: 'List of all new closed draft pull requests.'
+  unstaled-prs:
+    description: 'List of all new unstaled draft pull requests.'
 runs:
   using: 'node16'
   main: 'dist/index.js'

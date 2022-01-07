@@ -129,6 +129,16 @@ export const getOpenDraftPullRequests = async (
                       }
                     }
                     number
+                    timelineItems(last: 100) {
+                      nodes {
+                        ... on LabeledEvent {
+                          createdAt
+                          label {
+                            id
+                          }
+                        }
+                      }
+                    }
                     updatedAt
                   }
                 }
@@ -159,6 +169,15 @@ export const getOpenDraftPullRequests = async (
           hasNextPage = _hasNextPage;
 
           for (const node of _nodes) {
+            if (node.timelineItems.nodes) {
+              node.timelineItems.nodes = node.timelineItems.nodes.filter(o => {
+                for (const k in o) {
+                  return true;
+                }
+                return false;
+              });
+            }
+
             nodes.push(node);
           }
         } else {
@@ -190,6 +209,34 @@ export const addLabels = async (labelableId: NodeID, labelIds: NodeID[]) => {
     `
       mutation addLabels($input: AddLabelsToLabelableInput!) {
         addLabelsToLabelable(input: $input) {
+          labelable {
+            ... on PullRequest {
+              id
+            }
+          }
+        }
+      }
+    `,
+    {
+      input: {
+        labelIds,
+        labelableId
+      }
+    }
+  );
+};
+
+/**
+ * Remove labels from a labelable.
+ * @param labelableId The Node ID of the labelable object to remove labels from.
+ * @param labelIds The Node IDs of the labels to remove.
+ * @returns The Node ID of the labelable.
+ */
+export const removeLabels = async (labelableId: NodeID, labelIds: NodeID[]) => {
+  return graphqlWithAuth(
+    `
+      mutation removeLabels($input: RemoveLabelsFromLabelableInput!) {
+        removeLabelsFromLabelable(input: $input) {
           labelable {
             ... on PullRequest {
               id

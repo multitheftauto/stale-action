@@ -7,7 +7,8 @@ import {
   closePullRequest,
   createLabel,
   getOpenDraftPullRequests,
-  getRepositoryAndLabelWithin
+  getRepositoryAndLabelWithin,
+  removeLabels
 } from './functions';
 
 (async () => {
@@ -84,63 +85,93 @@ import {
     const newStaled: number[] = [];
     let numberOfStaleClosableFound = 0;
     const newClosed: number[] = [];
+    let numberOfStaleCheckableFound = 0;
+    const newUnstaled: number[] = [];
 
     core.startGroup('Labeling process');
 
     await Promise.allSettled(
-      search.nodes.map(async ({id, labels, number, updatedAt}) => {
-        try {
-          // If the pull request is not labeled stale yet
-          if (
-            labels.nodes &&
-            !labels.nodes.find(({name}) => name === 'stale')
-          ) {
+      search.nodes.map(
+        async ({id, labels, number, timelineItems, updatedAt}) => {
+          try {
+            // If the pull request is not labeled stale yet
             if (
-              daysBeforePrStale >= 0 &&
-              new Date(updatedAt) <=
-                new Date(Date.now() - daysBeforePrStale * 24 * 60 * 60 * 1000)
+              labels.nodes &&
+              !labels.nodes.find(({name}) => name === 'stale')
             ) {
-              core.info(`Labeling #${number} as stale...`);
+              if (
+                daysBeforePrStale >= 0 &&
+                new Date(updatedAt) <=
+                  new Date(Date.now() - daysBeforePrStale * 24 * 60 * 60 * 1000)
+              ) {
+                core.info(`Labeling #${number} as stale...`);
 
-              numberOfStaleLabeableFound += 1;
+                numberOfStaleLabeableFound += 1;
 
-              // Add stale label
-              if (await addLabels(id, [stalePrLabelId])) {
-                newStaled.push(number);
+                // Add stale label
+                if (await addLabels(id, [stalePrLabelId])) {
+                  newStaled.push(number);
 
-                // Post stale comment if provided
-                if (stalePrMessage) {
+                  // Post stale comment if provided
+                  if (stalePrMessage) {
+                    core.info(`Posting comment on #${number} about it...`);
+
+                    await addComment(id, stalePrMessage);
+                  }
+                }
+              }
+            } else if (
+              daysBeforePrClose >= 0 &&
+              new Date(updatedAt) <=
+                new Date(Date.now() - daysBeforePrClose * 24 * 60 * 60 * 1000)
+            ) {
+              core.info(`Closing #${number} as stale...`);
+
+              numberOfStaleClosableFound += 1;
+
+              // Close pull request
+              if (await closePullRequest(id)) {
+                newClosed.push(number);
+
+                // Post stale closed comment if provided
+                if (closePrMessage) {
                   core.info(`Posting comment on #${number} about it...`);
 
-                  await addComment(id, stalePrMessage);
+                  await addComment(id, closePrMessage);
+                }
+              }
+            } else {
+              core.info(`Checking if #${number} is stale anymore...`);
+
+              numberOfStaleCheckableFound += 1;
+
+              if (timelineItems.nodes) {
+                const staleLabel = timelineItems.nodes
+                  .slice()
+                  .reverse()
+                  .find(
+                    ({label: {id: _labelId}}) => _labelId === stalePrLabelId
+                  );
+
+                // If we couldn't find the stale label within the last 100 events or PR has been updated after labeling, unlabel now
+                if (
+                  !staleLabel ||
+                  new Date(staleLabel.createdAt).getTime() <
+                    new Date(updatedAt).getTime() - 10000
+                ) {
+                  core.info(`Unlabeling #${number} as no longer stale...`);
+
+                  if (await removeLabels(id, [stalePrLabelId])) {
+                    newUnstaled.push(number);
+                  }
                 }
               }
             }
-          } else if (
-            daysBeforePrClose >= 0 &&
-            new Date(updatedAt) <=
-              new Date(Date.now() - daysBeforePrClose * 24 * 60 * 60 * 1000)
-          ) {
-            core.info(`Closing #${number} as stale...`);
-
-            numberOfStaleClosableFound += 1;
-
-            // Close pull request
-            if (await closePullRequest(id)) {
-              newClosed.push(number);
-
-              // Post stale closed comment if provided
-              if (closePrMessage) {
-                core.info(`Posting comment on #${number} about it...`);
-
-                await addComment(id, closePrMessage);
-              }
-            }
+          } catch (e) {
+            core.setFailed(`${e}`);
           }
-        } catch (e) {
-          core.setFailed(`${e}`);
         }
-      })
+      )
     );
 
     core.endGroup();
@@ -154,6 +185,11 @@ import {
       `Closed ${newClosed.length} out of ${numberOfStaleClosableFound} found old draft pull requests.`
     );
     core.setOutput('closed-prs', newClosed);
+
+    core.notice(
+      `Unstaled ${newUnstaled.length} out of ${numberOfStaleCheckableFound} found updated draft pull requests.`
+    );
+    core.setOutput('unstaled-prs', newUnstaled);
   } catch (e) {
     core.setFailed(`${e}`);
   }

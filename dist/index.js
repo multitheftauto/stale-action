@@ -7,7 +7,7 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.closePullRequest = exports.addComment = exports.addLabels = exports.getOpenDraftPullRequests = exports.getRepositoryAndLabelWithin = exports.createLabel = void 0;
+exports.closePullRequest = exports.addComment = exports.removeLabels = exports.addLabels = exports.getOpenDraftPullRequests = exports.getRepositoryAndLabelWithin = exports.createLabel = void 0;
 const core = __nccwpck_require__(2186);
 const graphql_1 = __nccwpck_require__(8467);
 const graphqlWithAuth = graphql_1.graphql.defaults({
@@ -103,6 +103,16 @@ const getOpenDraftPullRequests = async (owner, repo, ignoredLabelName = '') => {
                       }
                     }
                     number
+                    timelineItems(last: 100) {
+                      nodes {
+                        ... on LabeledEvent {
+                          createdAt
+                          label {
+                            id
+                          }
+                        }
+                      }
+                    }
                     updatedAt
                   }
                 }
@@ -122,6 +132,14 @@ const getOpenDraftPullRequests = async (owner, repo, ignoredLabelName = '') => {
                     lastCursor = endCursor;
                     hasNextPage = _hasNextPage;
                     for (const node of _nodes) {
+                        if (node.timelineItems.nodes) {
+                            node.timelineItems.nodes = node.timelineItems.nodes.filter(o => {
+                                for (const k in o) {
+                                    return true;
+                                }
+                                return false;
+                            });
+                        }
                         nodes.push(node);
                     }
                 }
@@ -168,6 +186,31 @@ const addLabels = async (labelableId, labelIds) => {
     });
 };
 exports.addLabels = addLabels;
+/**
+ * Remove labels from a labelable.
+ * @param labelableId The Node ID of the labelable object to remove labels from.
+ * @param labelIds The Node IDs of the labels to remove.
+ * @returns The Node ID of the labelable.
+ */
+const removeLabels = async (labelableId, labelIds) => {
+    return graphqlWithAuth(`
+      mutation removeLabels($input: RemoveLabelsFromLabelableInput!) {
+        removeLabelsFromLabelable(input: $input) {
+          labelable {
+            ... on PullRequest {
+              id
+            }
+          }
+        }
+      }
+    `, {
+        input: {
+            labelIds,
+            labelableId
+        }
+    });
+};
+exports.removeLabels = removeLabels;
 /**
  * Add a comment to a subject.
  * @param subjectId The Node ID of the subject to modify.
@@ -8702,11 +8745,13 @@ const functions_1 = __nccwpck_require__(358);
         const daysBeforePrStale = parseInt(core.getInput('days-before-pr-stale'), 10);
         const daysBeforePrClose = parseInt(core.getInput('days-before-pr-close'), 10);
         let numberOfStaleLabeableFound = 0;
-        let numberOfStaleLabeled = 0;
+        const newStaled = [];
         let numberOfStaleClosableFound = 0;
-        let numberOfStaleClosed = 0;
+        const newClosed = [];
+        let numberOfStaleCheckableFound = 0;
+        const newUnstaled = [];
         core.startGroup('Labeling process');
-        await Promise.allSettled(search.nodes.map(async ({ id, labels, number, updatedAt }) => {
+        await Promise.allSettled(search.nodes.map(async ({ id, labels, number, timelineItems, updatedAt }) => {
             try {
                 // If the pull request is not labeled stale yet
                 if (labels.nodes &&
@@ -8718,7 +8763,7 @@ const functions_1 = __nccwpck_require__(358);
                         numberOfStaleLabeableFound += 1;
                         // Add stale label
                         if (await (0, functions_1.addLabels)(id, [stalePrLabelId])) {
-                            numberOfStaleLabeled += 1;
+                            newStaled.push(number);
                             // Post stale comment if provided
                             if (stalePrMessage) {
                                 core.info(`Posting comment on #${number} about it...`);
@@ -8734,11 +8779,30 @@ const functions_1 = __nccwpck_require__(358);
                     numberOfStaleClosableFound += 1;
                     // Close pull request
                     if (await (0, functions_1.closePullRequest)(id)) {
-                        numberOfStaleClosed += 1;
+                        newClosed.push(number);
                         // Post stale closed comment if provided
                         if (closePrMessage) {
                             core.info(`Posting comment on #${number} about it...`);
                             await (0, functions_1.addComment)(id, closePrMessage);
+                        }
+                    }
+                }
+                else {
+                    core.info(`Checking if #${number} is stale anymore...`);
+                    numberOfStaleCheckableFound += 1;
+                    if (timelineItems.nodes) {
+                        const staleLabel = timelineItems.nodes
+                            .slice()
+                            .reverse()
+                            .find(({ label: { id: _labelId } }) => _labelId === stalePrLabelId);
+                        // If we couldn't find the stale label within the last 100 events or PR has been updated after labeling, unlabel now
+                        if (!staleLabel ||
+                            new Date(staleLabel.createdAt).getTime() <
+                                new Date(updatedAt).getTime() - 10000) {
+                            core.info(`Unlabeling #${number} as no longer stale...`);
+                            if (await (0, functions_1.removeLabels)(id, [stalePrLabelId])) {
+                                newUnstaled.push(number);
+                            }
                         }
                     }
                 }
@@ -8748,8 +8812,12 @@ const functions_1 = __nccwpck_require__(358);
             }
         }));
         core.endGroup();
-        core.notice(`Labeled ${numberOfStaleLabeled} out of ${numberOfStaleLabeableFound} found new draft pull requests as stale.`);
-        core.notice(`Closed ${numberOfStaleClosed} out of ${numberOfStaleClosableFound} found old draft pull requests as stale.`);
+        core.notice(`Staled ${newStaled.length} out of ${numberOfStaleLabeableFound} found new draft pull requests.`);
+        core.setOutput('staled-prs', newStaled);
+        core.notice(`Closed ${newClosed.length} out of ${numberOfStaleClosableFound} found old draft pull requests.`);
+        core.setOutput('closed-prs', newClosed);
+        core.notice(`Unstaled ${newUnstaled.length} out of ${numberOfStaleCheckableFound} found updated draft pull requests.`);
+        core.setOutput('unstaled-prs', newUnstaled);
     }
     catch (e) {
         core.setFailed(`${e}`);
