@@ -118,7 +118,7 @@ export const getOpenDraftPullRequests = async (
         const {search}: PullRequestsQuery = await graphqlWithAuth(
           `
             query PullRequestsQuery($search: String!, $cursor: String) {
-              search(after: $cursor, first: 1, type: ISSUE, query: $search) {
+              search(after: $cursor, first: 100, type: ISSUE, query: $search) {
                 issueCount
                 nodes {
                   ... on PullRequest {
