@@ -1,0 +1,20 @@
+name: 'Stale draft PR handler'
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly
+    - cron: '0 0 * * 0'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Stale
+        uses: multitheftauto/stale-action@main
+        with:
+          close-pr-message: 'This draft pull request was closed because it has been marked stale for at least 7 days with no activity.'
+          days-before-pr-close: 7
+          days-before-pr-stale: 60
+          ignored-label: 'keep'
+          stale-pr-label-description: 'Inactive for over 60 days, to be closed'
+          stale-pr-message: 'This draft pull request is stale because it has been open for at least 60 days with no activity. Please continue on your draft pull request or it will be closed in 7 days automatically.'
