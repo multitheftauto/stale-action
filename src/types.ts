@@ -42,6 +42,16 @@ export type DateTime = string;
 export type LabelObject = Label & {};
 
 /**
+ * GitHub GraphQL page info type.
+ * Page info.
+ * @see https://docs.github.com/en/graphql/reference/objects#pageinfo
+ */
+export type PageInfo = {
+  endCursor?: string;
+  hasNextPage: boolean;
+};
+
+/**
  * GitHub GraphQL query result item type.
  * A pull request.
  * @see https://docs.github.com/en/graphql/reference/objects#pullrequest
@@ -75,9 +85,6 @@ export type PullRequestsQuery = {
   search: {
     issueCount: number;
     nodes?: PullRequestObject[];
-    pageInfo: {
-      endCursor?: string;
-      hasNextPage: boolean;
-    };
+    pageInfo: PageInfo;
   };
 };
