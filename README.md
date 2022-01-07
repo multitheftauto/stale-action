@@ -43,6 +43,14 @@ Every argument is optional.
 | [stale-pr-label-description](#stale-pr-label-description) | A description for the stale label if the label needs to be created.                                                |                       |
 | [stale-pr-message](#stale-pr-message)                     | The message to post on the stale draft pull request that is being labeled.                                         |                       |
 
+### List of output options
+
+| Output       | Description                                   |
+| ------------ | --------------------------------------------- |
+| closed-prs   | List of all new closed draft pull requests.   |
+| staled-prs   | List of all new staled draft pull requests.   |
+| unstaled-prs | List of all new unstaled draft pull requests. |
+
 ### Usage
 
 See also [action.yml](./action.yml) for a comprehensive list of all the options.
