@@ -25,14 +25,14 @@ const graphqlWithAuth = graphql_1.graphql.defaults({
  */
 const createLabel = async (repositoryId, name, color, description = '') => {
     const { createLabel: createdLabel } = await graphqlWithAuth(`
-      mutation CreateLabelMutation($input: CreateLabelInput!) {
-        createLabel(input: $input) {
-          label {
-            id
+        mutation CreateLabelMutation($input: CreateLabelInput!) {
+          createLabel(input: $input) {
+            label {
+              id
+            }
           }
         }
-      }
-    `, {
+      `, {
         input: {
             color,
             description,

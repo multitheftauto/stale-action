@@ -34,14 +34,14 @@ export const createLabel = async (
   const {createLabel: createdLabel}: CreateLabelMutation =
     await graphqlWithAuth(
       `
-      mutation CreateLabelMutation($input: CreateLabelInput!) {
-        createLabel(input: $input) {
-          label {
-            id
+        mutation CreateLabelMutation($input: CreateLabelInput!) {
+          createLabel(input: $input) {
+            label {
+              id
+            }
           }
         }
-      }
-    `,
+      `,
       {
         input: {
           color,
