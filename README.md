@@ -53,6 +53,7 @@ name: 'Stale draft PR handler'
 on:
   workflow_dispatch:
   schedule:
+    # Daily
     - cron: '0 0 * * *'
 
 jobs:
@@ -72,6 +73,7 @@ name: 'Stale draft PR handler'
 on:
   workflow_dispatch:
   schedule:
+    # Daily
     - cron: '0 0 * * *'
 
 jobs:
@@ -93,6 +95,7 @@ name: 'Stale draft PR handler'
 on:
   workflow_dispatch:
   schedule:
+    # Daily
     - cron: '0 0 * * *'
 
 jobs:
