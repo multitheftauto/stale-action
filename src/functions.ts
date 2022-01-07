@@ -117,28 +117,28 @@ export const getOpenDraftPullRequests = async (
       while (hasNextPage) {
         const {search}: PullRequestsQuery = await graphqlWithAuth(
           `
-          query PullRequestsQuery($search: String!, $cursor: String) {
-            search(after: $cursor, first: 1, type: ISSUE, query: $search) {
-              issueCount
-              nodes {
-                ... on PullRequest {
-                  id
-                  labels(first: 5) {
-                    nodes {
-                      name
+            query PullRequestsQuery($search: String!, $cursor: String) {
+              search(after: $cursor, first: 1, type: ISSUE, query: $search) {
+                issueCount
+                nodes {
+                  ... on PullRequest {
+                    id
+                    labels(first: 5) {
+                      nodes {
+                        name
+                      }
                     }
+                    number
+                    updatedAt
                   }
-                  number
-                  updatedAt
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
                 }
               }
-              pageInfo {
-                endCursor
-                hasNextPage
-              }
             }
-          }
-        `,
+          `,
           {
             search: `repo:${owner}/${repo} is:pr is:open is:draft${
               ignoredLabelName ? ` -label:${ignoredLabelName}` : ''
