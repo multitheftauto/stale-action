@@ -8,10 +8,11 @@ The configuration must be on the default branch and the default values will:
 
 - Add a label "stale" on draft pull requests after 90 days of inactivity
 - Close the stale draft pull requests after 30 days of inactivity
+- If an update/comment occur on stale draft pull requests, the stale label will be removed and the timer will restart
 
 ## Todos
 
-- If an update/comment occur on stale draft pull requests, the stale label will be removed and the timer will restart
+- Automatically generate accurate TypeScript definitions from GraphQL schemas
 
 ## Recommended permissions
 
