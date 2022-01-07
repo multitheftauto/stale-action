@@ -34,7 +34,7 @@ export const createLabel = async (
   const {createLabel: createdLabel}: CreateLabelMutation =
     await graphqlWithAuth(
       `
-      mutation createLabel($input: CreateLabelInput!) {
+      mutation CreateLabelMutation($input: CreateLabelInput!) {
         createLabel(input: $input) {
           label {
             id
@@ -74,7 +74,7 @@ export const getRepositoryAndLabelWithin = async (
 ): Promise<RepositoryWithLabel | undefined> => {
   const {repository}: RepositoryQuery = await graphqlWithAuth(
     `
-      query getRepositoryAndLabelWithin($repo: String!, $owner: String!, $labelName: String!) {
+      query RepositoryQuery($repo: String!, $owner: String!, $labelName: String!) {
         repository(name: $repo, owner: $owner) {
           id,
           label(name: $labelName) {
@@ -188,7 +188,7 @@ export const getOpenDraftPullRequests = async (
 export const addLabels = async (labelableId: NodeID, labelIds: NodeID[]) => {
   return graphqlWithAuth(
     `
-      mutation ($input: AddLabelsToLabelableInput!) {
+      mutation addLabels($input: AddLabelsToLabelableInput!) {
         addLabelsToLabelable(input: $input) {
           labelable {
             ... on PullRequest {
@@ -216,7 +216,7 @@ export const addLabels = async (labelableId: NodeID, labelIds: NodeID[]) => {
 export const addComment = async (subjectId: NodeID, body: string) => {
   return graphqlWithAuth(
     `
-      mutation ($input: AddCommentInput!) {
+      mutation addComment($input: AddCommentInput!) {
         addComment(input: $input) {
           commentEdge {
             node {
@@ -243,7 +243,7 @@ export const addComment = async (subjectId: NodeID, body: string) => {
 export const closePullRequest = async (id: NodeID) => {
   return graphqlWithAuth(
     `
-      mutation ($input: ClosePullRequestInput!) {
+      mutation closePullRequest($input: ClosePullRequestInput!) {
         closePullRequest(input: $input) {
           pullRequest {
             id
