@@ -39,18 +39,18 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.3",
-    "@octokit/graphql": "^4.8.0"
+    "@octokit/graphql": "^5.0.1"
   },
   "devDependencies": {
-    "@types/node": "^17.0.37",
-    "@typescript-eslint/eslint-plugin": "^5.27.0",
-    "@typescript-eslint/parser": "^5.27.0",
+    "@types/node": "^16.11.56",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
     "@vercel/ncc": "^0.34.0",
-    "eslint": "^8.16.0",
-    "eslint-plugin-github": "^4.3.6",
+    "eslint": "^8.22.0",
+    "eslint-plugin-github": "^4.3.7",
     "husky": "^8.0.1",
-    "prettier": "^2.6.2",
+    "prettier": "^2.7.1",
     "standard-version": "^9.5.0",
-    "typescript": "^4.7.2"
+    "typescript": "^4.7.4"
   }
 }
