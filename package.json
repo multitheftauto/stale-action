@@ -1,6 +1,6 @@
 {
   "name": "@multitheftauto/stale-action",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "description": "Marks old draft pull requests as stale",
   "main": "lib/main.js",
