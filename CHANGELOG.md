@@ -1,5 +1,7 @@
 ### Stale Action Changelog
 
+## [2.0.0](https://github.com/multitheftauto/stale-action/compare/v1.0.6...v2.0.0) (2023-03-18)
+
 ### [1.0.6](https://github.com/multitheftauto/stale-action/compare/v1.0.4...v1.0.6) (2023-01-23)
 
 ### [1.0.5](https://github.com/multitheftauto/stale-action/compare/v1.0.4...v1.0.5) (2022-12-31)
