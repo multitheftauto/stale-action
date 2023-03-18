@@ -42,5 +42,5 @@ outputs:
   unstaled-prs:
     description: 'List of all new unstaled draft pull requests.'
 runs:
-  using: 'node16'
+  using: 'node18'
   main: 'dist/index.js'
